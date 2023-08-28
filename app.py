@@ -62,6 +62,10 @@ with open('mbh.json', 'r') as f:
     mbh_search_index = json.loads(f.read())
     f.close()
 
+with open('rmy.json', 'r', encoding='utf-8') as f:
+    rmy_search_index = json.loads(f.read())
+    f.close()
+
 @app.route("/api/search", methods=['POST'])
 @cross_origin()
 def search_result():
@@ -69,6 +73,8 @@ def search_result():
     results = {}
     if(query['text'] == 'MBH'):
         results = run_query_on_index(mbh_search_index, query['query'])
+    elif(query['text'] == 'RMY'):
+        results = run_query_on_index(rmy_search_index, query['query'])
     else:
         abort(404)
 
