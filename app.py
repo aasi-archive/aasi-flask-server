@@ -21,6 +21,7 @@ import json
 import re
 import sys
 from easygoogletranslate import EasyGoogleTranslate
+import requests
 
 MAX_RESULTS = 100
 SURROUNDING_CHARS_MAX = 30 
@@ -54,6 +55,65 @@ def run_query_on_index(index, query):
             total_results += 1
     return results
 
+def run_query_on_rigveda(vedaweb_json):
+    response = requests.post('https://vedaweb.uni-koeln.de/rigveda/api/search/quick', json=vedaweb_json)
+    vedaweb_result = response.json()["hits"]
+    result_dict = {}
+    for vw_res in vedaweb_result:
+        result_key = f'{vw_res["source"]["book"]}:{vw_res["source"]["hymn"]}'
+        # Replace <em> with <div class="query_match">
+        result_surrounding = vw_res["highlight"]["Griffith"].replace('<em>', '<div class="query_match">')
+        result_surrounding = result_surrounding.replace('</em>', '</div>')
+        result_dict[result_key] = result_surrounding
+    
+    return result_dict
+
+def run_query_on_rigveda_EN(query):
+    vedaweb_json = {
+        "indexName": "vedaweb",
+        "accents": False,
+        "from": 1,
+        "size": 100,
+        "sortBy": "_score",
+        "sortOrder": "descend",
+        "scopes": [
+            {
+            "empty": False,
+            "fromBook": 1,
+            "fromHymn": 1,
+            "toBook": 10,
+            "toHymn": 191
+            }
+        ],
+        "regex": False,
+        "input": query,
+        "field": "translation_griffith"
+    }
+    return run_query_on_rigveda(vedaweb_json)
+
+def run_query_on_rigveda_SA(query):
+    vedaweb_json = {
+        "indexName": "vedaweb",
+        "accents": False,
+        "from": 1,
+        "size": 100,
+        "sortBy": "_score",
+        "sortOrder": "descend",
+        "scopes": [
+            {
+            "empty": False,
+            "fromBook": 1,
+            "fromHymn": 1,
+            "toBook": 10,
+            "toHymn": 191
+            }
+        ],
+        "regex": False,
+        "input": query,
+        "field": "version_devanagari"
+    }
+    return run_query_on_rigveda(vedaweb_json)
+
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -75,6 +135,10 @@ def search_result():
         results = run_query_on_index(mbh_search_index, query['query'])
     elif(query['text'] == 'RMY'):
         results = run_query_on_index(rmy_search_index, query['query'])
+    elif(query['text'] == 'RV_EN'):
+        results = run_query_on_rigveda_EN(query['query'])
+    elif(query['text'] == 'RV_SA'):
+        results = run_query_on_rigveda_SA(query['query'])
     else:
         abort(404)
 
