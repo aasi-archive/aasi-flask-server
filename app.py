@@ -88,6 +88,7 @@ def search_result():
     return jsonify(results)
 
 @app.route("/api/translate", methods=['POST'])
+@cross_origin()
 def return_translation():
     query = request.json
     if('sl' not in query or 'tl' not in query or 'text' not in query):
