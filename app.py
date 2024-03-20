@@ -23,7 +23,7 @@ import sys
 from easygoogletranslate import EasyGoogleTranslate
 import requests
 
-MAX_RESULTS = 100
+MAX_RESULTS = 1028
 SURROUNDING_CHARS_MAX = 50 
 
 def run_query_on_index(index, query):
@@ -53,6 +53,8 @@ def run_query_on_index(index, query):
 
             results[section]["surrounding"] = "..." + index[section][pre_match_start:pre_match_end]  + '<span class="query_match">' + mtch.group() + '</span>' + index[section][post_match_start:post_match_end] + "..."
             total_results += 1
+            break
+    
     return results
 
 app = Flask(__name__)
